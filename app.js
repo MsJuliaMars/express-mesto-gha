@@ -5,18 +5,11 @@ const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const {PORT = 3000} = process.env;
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-})
-// подключаемся к серверу mongo
-// mongoose.connect('mongodb://localhost:27017/mestodb', {
-//   useNewUrlParser: true,
-//   useCreateIndex: true,
-//   useFindAndModify: false
-// });
+mongoose.connect('mongodb://localhost:27017/mestodb', {})
 
 const app = express(); //запускаем наш express
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json()); // для собирания JSON-формата
+app.use(bodyParser.urlencoded({extended: true})); // для приёма веб-страниц внутри POST-запроса
 
 app.use((req, res, next) => {
   req.user = {
@@ -26,10 +19,8 @@ app.use((req, res, next) => {
   next();
 });
 
-
 app.use('/', usersRouter);
 app.use('/', cardsRouter);
-
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`)
