@@ -1,25 +1,42 @@
 /* eslint-disable no-underscore-dangle */
 const Card = require('../models/card');
-const { STATUS_CODE, MESSAGE } = require('../utils/constantsError');
+const {
+  STATUS_CODE,
+  MESSAGE,
+} = require('../utils/constantsError');
+// eslint-disable-next-line no-unused-vars
+const NotFound = require('../errors/NotFound');
+// eslint-disable-next-line no-unused-vars
+const BadRequest = require('../errors/BadRequestError');
 
 // GET /cards — возвращает все карточки
 const getCard = (req, res, next) => {
   Card.find({})
-    .then((cards) => res.status(STATUS_CODE.OK).send(cards))
+    .then((cards) => res.status(STATUS_CODE.OK)
+      .send(cards))
     .catch(next);
 };
 
 // POST /cards — создаёт карточку
 const createCard = (req, res, next) => {
-  const { name, link } = req.body;
+  const {
+    name,
+    link,
+  } = req.body;
   const ownerId = req.user._id;
-  Card.create({ name, link, owner: ownerId })
+  Card.create({
+    name,
+    link,
+    owner: ownerId,
+  })
     .then((card) => {
-      res.status(STATUS_CODE.OK).send({ data: card });
+      res.status(STATUS_CODE.OK)
+        .send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_CREATE_CARD });
+        res.status(STATUS_CODE.BAD_REQUEST)
+          .send({ message: MESSAGE.ERROR_CREATE_CARD });
       }
       return next;
     });
@@ -28,47 +45,78 @@ const createCard = (req, res, next) => {
 // DELETE /cards/:cardId — удаляет карточку по идентификатору
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  Card.findById(cardId)
+  Card.findById(cardId).orFail(() => {
+    // eslint-disable-next-line no-new
+    new Error('NotFound');
+  })
     .then((card) => {
       if (req.user._id === card.owner.toString()) {
         Card.findByIdAndDelete(cardId)
           .then(() => {
-            res.status(STATUS_CODE.OK).send({ data: card });
+            res.status(STATUS_CODE.OK)
+              .send({ data: card });
           });
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_CODE.NOT_FOUND).send({ message: `Карточка с указанным _id=${req.params.cardId} не найдена.` });
+        res.status(STATUS_CODE.NOT_FOUND)
+          .send({ message: `Карточка с указанным _id=${req.params.cardId} не найдена.` });
+      } else if (err.name === 'ValidationError') {
+        res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_DELETE_CARD });
       }
       return next;
     });
 };
 
 // PUT /cards/:cardId/likes — поставить лайк карточке
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
-  ).then((card) => res.status(STATUS_CODE.OK).send({ data: card }))
-    .catch((err) => {
-      res.status(500).send({ message: err.message });
-    });
+  ).orFail(() => {
+    // eslint-disable-next-line no-new
+    new Error('NotFound');
+  }).then((card) => {
+    res.status(STATUS_CODE.OK).send({ data: card });
+  }).catch((err) => {
+    if (err.name === 'CastError') {
+      res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_NOT_LIKE });
+    } else
+    if (err.name === 'DocumentNotFoundError') {
+      res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_CREATE_LIKE });
+    }
+    next(err);
+  });
 };
 
 // DELETE /cards/:cardId/likes — убрать лайк с карточки
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
-  ).then((card) => res.status(STATUS_CODE.OK).send({ data: card }))
+  ).orFail(() => {
+    // eslint-disable-next-line no-new
+    new Error('NotFound');
+  })
+    .then((card) => res.status(STATUS_CODE.OK)
+      .send({ data: card }))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      if (err.name === 'CastError') {
+        res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_NOT_LIKE });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_CREATE_LIKE });
+      }
+      next(err);
     });
 };
 
 module.exports = {
-  getCard, createCard, deleteCard, likeCard, dislikeCard,
+  getCard,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
 };
