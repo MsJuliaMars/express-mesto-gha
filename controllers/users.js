@@ -1,7 +1,6 @@
 const User = require('../models/user');
 const NotFound = require('../errors/NotFound');
 // eslint-disable-next-line quotes
-// const BadRequestError = require('../errors/BadRequestError');
 const {
   STATUS_CODE,
   MESSAGE,
@@ -17,18 +16,16 @@ const getUsers = (req, res, next) => {
 
 // GET /users/:userId - возвращает пользователя по _id
 const getUserID = (req, res, next) => {
-  User.findById(req.params.userId).orFail(() => {
-    // eslint-disable-next-line no-new
-    new NotFound();
-  })
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         res.status(STATUS_CODE.NOT_FOUND).send({ message: `Извините, пользователь _id=${req.params.userId} не найден.` });
-      } else { res.send({ data: user }); }
+      }
+      res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
-        res.status(STATUS_CODE.BAD_REQUEST).send({ message: 'Некорректный userID' });
+      if (err.name === 'CastError') {
+        res.status(STATUS_CODE.BAD_REQUEST).send({ message: 'Некорректный userID ' });
       }
       return next(err);
     });

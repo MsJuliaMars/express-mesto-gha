@@ -81,11 +81,11 @@ const likeCard = (req, res, next) => {
   }).then((card) => {
     res.status(STATUS_CODE.OK).send({ data: card });
   }).catch((err) => {
-    if (err.name === 'CastError') {
-      res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_NOT_LIKE });
-    } else
     if (err.name === 'DocumentNotFoundError') {
       res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_CREATE_LIKE });
+    } else
+    if (err.name === 'CastError') {
+      res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_NOT_LIKE });
     }
     next(err);
   });
