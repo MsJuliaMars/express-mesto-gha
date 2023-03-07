@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
+const NotFound = require('./errors/NotFound');
+const { STATUS_CODE } = require('./utils/constantsError');
 
 const
   { PORT = 3000 } = process.env;
@@ -23,6 +25,11 @@ app.use((req, res, next) => {
 
 app.use('/', usersRouter);
 app.use('/', cardsRouter);
+
+// Обработка неправильного пути
+app.use('*', (req, res) => {
+  res.status(STATUS_CODE.NOT_FOUND).send({ message: 'Обработка неправильного пути' });
+});
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
