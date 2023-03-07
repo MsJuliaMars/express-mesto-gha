@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const NotFound = require('./errors/NotFound');
 const { STATUS_CODE } = require('./utils/constantsError');
 
 const
