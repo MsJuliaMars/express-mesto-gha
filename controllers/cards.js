@@ -45,25 +45,23 @@ const createCard = (req, res, next) => {
 // DELETE /cards/:cardId — удаляет карточку по идентификатору
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  Card.findById(cardId).orFail(() => {
-    // eslint-disable-next-line no-new
-    new Error('NotFound');
-  })
+  Card.findById(cardId)
     .then((card) => {
       if (req.user._id === card.owner.toString()) {
-        Card.findByIdAndDelete(cardId)
+        Card.findByIdAndDelete(req.params.cardId)
           .then(() => {
             res.status(STATUS_CODE.OK)
               .send({ data: card });
           });
-      }
+      } else res.status(STATUS_CODE.BAD_REQUEST).send({ message: 'ghfdghf' });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError' || err.name === 'TypeError') {
         res.status(STATUS_CODE.NOT_FOUND)
           .send({ message: `Карточка с указанным _id=${req.params.cardId} не найдена.` });
-      } else if (err.name === 'ValidationError') {
-        res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_DELETE_CARD });
+      } else if (err.name === 'CastError') {
+        res.status(STATUS_CODE.BAD_REQUEST)
+          .send({ message: 'Переданы некорректные данные' });
       }
       return next;
     });
