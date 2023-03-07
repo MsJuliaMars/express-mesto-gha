@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 app.use('/', usersRouter);
 app.use('/', cardsRouter);
 
-// Обработка неправильного пути
+// Обработка неправильного пути '*'
 app.use('*', (req, res) => {
   res.status(STATUS_CODE.NOT_FOUND).send({ message: 'Обработка неправильного пути' });
 });
