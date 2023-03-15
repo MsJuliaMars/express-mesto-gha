@@ -2,7 +2,9 @@
 module.exports.STATUS_CODE = {
   OK: 200,
   BAD_REQUEST: 400,
+  UNAUTHORIZED_ERROR: 401,
   NOT_FOUND: 404,
+  CONFLICT_ERROR: 409,
   SERVER_ERROR: 500,
 };
 
@@ -16,4 +18,6 @@ module.exports.MESSAGE = {
   ERROR_DELETE_CARD: 'Переданы некорректные данные при удалении карточки',
   ERROR_CREATE_LIKE: 'Передан несуществующий _id карточки',
   ERROR_NOT_LIKE: 'Переданы некорректные данные для постановки/снятии лайка',
+  ERROR_CONFLICT_EMAIL: 'Вы пытаетесь зарегистриировать вторую учетную запись на тот же email',
+  ERROR_CONFLICT_CARD: 'Вы пытветесь удалить карточку другого пользователя',
 };

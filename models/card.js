@@ -16,7 +16,7 @@ const cardSchema = new mongoose.Schema({
       validator(url) {
         return isURL(url);
       },
-      message: 'Переданы некорректные данные ',
+      message: 'Переданы некорректные данные в поле /Link/',
     },
 
   },

@@ -1,28 +1,70 @@
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const isEmail = require('validator/lib/isEmail');
+// const isEmail = require('validator/lib/isEmail');
+// const isURL = require('validator/es/lib/isURL');
+// const isEmail = require('validator');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
     minlength: 2,
     maxlength: 30,
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    required: true,
+    required: false,
     minlength: 2,
     maxlength: 30,
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
-    required: true,
+    required: false,
     validate: {
       validator(avatar) {
         return /^(http:|https:)\/\/w*\w/.test(avatar);
       },
       message: 'Ссылка на аватар некорректна',
     },
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(email) {
+        return isEmail(email);
+      },
+      message: 'Поле /Email/ должено быть валидным email-адресом',
+    },
+  },
+  password: {
+    type: String,
+    required: true,
   },
 });
+
+// eslint-disable-next-line func-names
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      // eslint-disable-next-line no-undef
+      return bcrypt.compare(password, user.password)
+        // eslint-disable-next-line consistent-return
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          return user;
+        });
+    });
+};
 
 module.exports = mongoose.model('user', userSchema);
