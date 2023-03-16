@@ -27,13 +27,13 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 
 app.use(errors()); // обработчик ошибок celebrate
 app.use(handleError);
-app.use((req, res, next) => {
-  req.user = {
-    _id: '63ff8e5b5f67c08e0ee86221',
-  };
-
-  next();
-});
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '63ff8e5b5f67c08e0ee86221',
+//   };
+//
+//   next();
+// });
 
 app.use(routes);
 app.use('/', usersRouter);

@@ -53,7 +53,7 @@ const deleteCard = (req, res, next) => {
             res.status(STATUS_CODE.OK)
               .send({ data: card });
           });
-      } else res.status(STATUS_CODE.BAD_REQUEST).send({ message: 'ghfdghf' });
+      } else res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_CONFLICT_CARD });
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'TypeError') {

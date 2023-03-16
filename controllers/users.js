@@ -75,10 +75,35 @@ const createUser = (req, res) => {
 
 // POST /signin
 
-// GET /users/me
-const getCurrentUser = (req, res) => {
-  res.status(200)
-    .send({ message: 'getCurrentUser OK' });
+// GET /users/me - возвращает информацию о текущем пользователе
+// eslint-disable-next-line consistent-return
+const getCurrentUser = (req, res, next) => {
+  //  проверка на авторизацию
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer')) {
+    res.status(401)
+      .send({ message: 'Необходима авторизация' });
+  }
+  const token = authorization.replace('Bearer ', '');
+  let payload;
+  try {
+    // eslint-disable-next-line no-unused-vars
+    payload = jwt.verify(token, 'some-secret-key');
+    // res.send(payload);
+  } catch (err) {
+    // отправим ошибку если не получится
+    return res.status(401)
+      .send({ message: 'Необходима авторизация' });
+  }
+  // eslint-disable-next-line no-underscore-dangle
+  User.findById(payload._id)
+    .orFail(() => {
+      res.status(404)
+        .send({ message: 'Пользователь не найден' });
+    })
+    .then((user) => res.send(user))
+    .catch(next);
 };
 
 // POST /signin контроллер аутентификации
@@ -95,7 +120,11 @@ const login = (req, res) => {
         httpOnly: true,
         maxAge: 3600000,
       }); // возвращаем токен
-      res.status(STATUS_CODE.OK).send({ message: 'Вы успешно автризировались', token });
+      res.status(STATUS_CODE.OK)
+        .send({
+          message: 'Вы успешно автризировались',
+          token,
+        });
     })
     .catch((err) => {
       res.status(401)
