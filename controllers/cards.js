@@ -53,7 +53,10 @@ const deleteCard = (req, res, next) => {
             res.status(STATUS_CODE.OK)
               .send({ data: card });
           });
-      } else res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_CONFLICT_CARD });
+      } else {
+        res.status(STATUS_CODE.BAD_REQUEST)
+          .send({ message: MESSAGE.ERROR_CONFLICT_CARD });
+      }
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'TypeError') {
@@ -73,20 +76,25 @@ const likeCard = (req, res, next) => {
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
-  ).orFail(() => {
-    // eslint-disable-next-line no-new
-    new Error('NotFound');
-  }).then((card) => {
-    res.status(STATUS_CODE.OK).send({ data: card });
-  }).catch((err) => {
-    if (err.name === 'DocumentNotFoundError') {
-      res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_CREATE_LIKE });
-    } else
-    if (err.name === 'CastError') {
-      res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_NOT_LIKE });
-    }
-    next(err);
-  });
+  )
+    .orFail(() => {
+      // eslint-disable-next-line no-new
+      new Error('NotFound');
+    })
+    .then((card) => {
+      res.status(STATUS_CODE.OK)
+        .send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        res.status(STATUS_CODE.NOT_FOUND)
+          .send({ message: MESSAGE.ERROR_CREATE_LIKE });
+      } else if (err.name === 'CastError') {
+        res.status(STATUS_CODE.BAD_REQUEST)
+          .send({ message: MESSAGE.ERROR_NOT_LIKE });
+      }
+      next(err);
+    });
 };
 
 // DELETE /cards/:cardId/likes — убрать лайк с карточки
@@ -95,17 +103,20 @@ const dislikeCard = (req, res, next) => {
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
-  ).orFail(() => {
-    // eslint-disable-next-line no-new
-    new Error('NotFound');
-  })
+  )
+    .orFail(() => {
+      // eslint-disable-next-line no-new
+      new Error('NotFound');
+    })
     .then((card) => res.status(STATUS_CODE.OK)
       .send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_CODE.BAD_REQUEST).send({ message: MESSAGE.ERROR_NOT_LIKE });
+        res.status(STATUS_CODE.BAD_REQUEST)
+          .send({ message: MESSAGE.ERROR_NOT_LIKE });
       } else if (err.name === 'DocumentNotFoundError') {
-        res.status(STATUS_CODE.NOT_FOUND).send({ message: MESSAGE.ERROR_CREATE_LIKE });
+        res.status(STATUS_CODE.NOT_FOUND)
+          .send({ message: MESSAGE.ERROR_CREATE_LIKE });
       }
       next(err);
     });

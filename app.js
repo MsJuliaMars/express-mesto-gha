@@ -27,13 +27,6 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 
 app.use(errors()); // обработчик ошибок celebrate
 app.use(handleError);
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '63ff8e5b5f67c08e0ee86221',
-//   };
-//
-//   next();
-// });
 
 app.use(routes);
 app.use('/', usersRouter);
@@ -41,7 +34,8 @@ app.use('/', cardsRouter);
 
 // Обработка неправильного пути '*'
 app.use('*', (req, res) => {
-  res.status(STATUS_CODE.NOT_FOUND).send({ message: 'Обработка неправильного пути' });
+  res.status(STATUS_CODE.NOT_FOUND)
+    .send({ message: 'Обработка неправильного пути' });
 });
 
 app.use(auth);

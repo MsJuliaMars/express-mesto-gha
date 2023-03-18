@@ -73,8 +73,6 @@ const createUser = (req, res) => {
     });
 };
 
-// POST /signin
-
 // GET /users/me - возвращает информацию о текущем пользователе
 // eslint-disable-next-line consistent-return
 const getCurrentUser = (req, res, next) => {

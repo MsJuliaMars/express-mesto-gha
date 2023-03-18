@@ -4,8 +4,13 @@ const {
   login,
   createUser,
 } = require('../controllers/users');
+const {
+  validateLoginUser,
+  validateUser,
+} = require('../middlewares/validation');
 
-routes.post('/signup', createUser); // регистрация пользователя и его создание
-routes.post('/signin', login); // логин пользователя
+routes.post('/signup', validateUser, createUser); // регистрация пользователя и его создание
+// логин пользователя
+routes.post('/signin', validateLoginUser, login);
 
 module.exports = routes;
