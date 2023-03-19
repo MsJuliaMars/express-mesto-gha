@@ -4,7 +4,7 @@ const {
   Joi,
 } = require('celebrate'); // Валидация приходящих на сервер данных
 
-const urlRegex = /https?:\/\/(www\.)?[a-zA-Z\d-]+\.[\w\d\-.~:/?#[\]@!$&'()*+,;=]{2,}#?/;
+const urlRegex = /http[s]?:\/\/(www\.)?[a-zA-Z\d-]+\.[\w\d\-.~:/?#[\]@!$&'()*+,;=]{2,}#?/;
 
 const validateUser = celebrate({
   body: Joi.object()
