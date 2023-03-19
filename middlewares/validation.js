@@ -69,7 +69,7 @@ const validateCard = celebrate({
 });
 
 const validateCardId = celebrate({
-  body: Joi.object()
+  params: Joi.object()
     .keys({
       cardId: Joi.string()
         .hex()
@@ -79,7 +79,7 @@ const validateCardId = celebrate({
 });
 
 const validateUserId = celebrate({
-  body: Joi.object()
+  params: Joi.object()
     .keys({
       cardId: Joi.string()
         .hex()
