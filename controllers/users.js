@@ -81,8 +81,8 @@ const getCurrentUser = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer')) {
-    res.status(401)
-      .send({ message: 'Необходима авторизация' });
+    res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
+      .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
   }
   const token = authorization.replace('Bearer ', '');
   let payload;
@@ -92,14 +92,14 @@ const getCurrentUser = (req, res, next) => {
     // res.send(payload);
   } catch (err) {
     // отправим ошибку если не получится
-    return res.status(401)
-      .send({ message: 'Необходима авторизация' });
+    return res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
+      .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
   }
   // eslint-disable-next-line no-underscore-dangle
   User.findById(payload._id)
     .orFail(() => {
-      res.status(404)
-        .send({ message: 'Пользователь не найден' });
+      res.status(STATUS_CODE.NOT_FOUND)
+        .send({ message: MESSAGE.USER_NOT_FOUND });
     })
     .then((user) => res.send(user))
     .catch((err) => {
@@ -125,7 +125,7 @@ const login = (req, res) => {
       }); // возвращаем токен
       res.status(STATUS_CODE.OK)
         .send({
-          message: 'Вы успешно автризировались',
+          message: MESSAGE.SUCCESS_AUTH,
           token,
         });
     })
