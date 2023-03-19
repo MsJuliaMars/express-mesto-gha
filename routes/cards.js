@@ -14,8 +14,8 @@ const {
 
 routesCards.get('/cards', getCard); // возвращает все карточки
 routesCards.post('/cards', validateCard, createCard); // создаёт карточку
-routesCards.delete('/cards/:cardId', validateCardId, deleteCard);// удаляет карточку по идентификатору
-routesCards.put('/cards/:cardId/likes', validateCardId, likeCard); // поставить лайк карточке
-routesCards.delete('/cards/:cardId/likes', validateCardId, dislikeCard); // убрать лайк с карточки
+routesCards.delete('/cards/:cardId', deleteCard, validateCardId);// удаляет карточку по идентификатору
+routesCards.put('/cards/:cardId/likes', likeCard, validateCardId); // поставить лайк карточке
+routesCards.delete('/cards/:cardId/likes', dislikeCard, validateCardId); // убрать лайк с карточки
 
 module.exports = routesCards; // экспортировали роутер
