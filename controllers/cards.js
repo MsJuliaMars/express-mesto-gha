@@ -4,11 +4,6 @@ const {
   STATUS_CODE,
   MESSAGE,
 } = require('../utils/constantsError');
-// eslint-disable-next-line no-unused-vars
-const NotFound = require('../errors/NotFound');
-// eslint-disable-next-line no-unused-vars
-const BadRequest = require('../errors/BadRequestError');
-const ForbiddenError = require('../errors/ForbiddenError');
 
 // GET /cards — возвращает все карточки
 const getCard = (req, res, next) => {
