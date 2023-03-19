@@ -9,6 +9,7 @@ const {
   STATUS_CODE,
   MESSAGE,
 } = require('../utils/constantsError');
+const BadRequestError = require('../errors/BadRequestError');
 
 // GET /users — возвращает всех пользователей
 const getUsers = (req, res, next) => {
@@ -74,7 +75,7 @@ const createUser = (req, res) => {
 };
 
 // GET /users/me - возвращает информацию о текущем пользователе
-// eslint-disable-next-line consistent-return
+// eslint-disable-next-line consistent-return,no-unused-vars
 const getCurrentUser = (req, res, next) => {
   //  проверка на авторизацию
   const { authorization } = req.headers;
@@ -101,7 +102,11 @@ const getCurrentUser = (req, res, next) => {
         .send({ message: 'Пользователь не найден' });
     })
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Введены ны некорректные данные'));
+      } next(err);
+    });
 };
 
 // POST /signin контроллер аутентификации
@@ -116,7 +121,7 @@ const login = (req, res) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       res.cookie('jwt', token, {
         httpOnly: true,
-        maxAge: 3600000,
+        maxAge: 3600000 * 7,
       }); // возвращаем токен
       res.status(STATUS_CODE.OK)
         .send({

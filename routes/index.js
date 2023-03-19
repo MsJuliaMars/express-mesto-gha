@@ -9,7 +9,8 @@ const {
   validateUser,
 } = require('../middlewares/validation');
 
-routes.post('/signup', validateUser, createUser); // регистрация пользователя и его создание
+// регистрация пользователя и его создание
+routes.post('/signup', validateUser, createUser);
 // логин пользователя
 routes.post('/signin', validateLoginUser, login);
 

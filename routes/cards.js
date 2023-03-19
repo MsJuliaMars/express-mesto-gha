@@ -7,16 +7,15 @@ const {
   likeCard,
   dislikeCard,
 } = require('../controllers/cards');
-const auth = require('../middlewares/auth');
 const {
   validateCard,
   validateCardId,
 } = require('../middlewares/validation');
 
-routesCards.get('/cards', auth, getCard); // возвращает все карточки
-routesCards.post('/cards', auth, validateCard, createCard); // создаёт карточку
-routesCards.delete('/cards/:cardId', auth, validateCardId, deleteCard);// удаляет карточку по идентификатору
-routesCards.put('/cards/:cardId/likes', auth, validateCardId, likeCard); // поставить лайк карточке
-routesCards.delete('/cards/:cardId/likes', auth, validateCardId, dislikeCard); // убрать лайк с карточки
+routesCards.get('/cards', getCard); // возвращает все карточки
+routesCards.post('/cards', validateCard, createCard); // создаёт карточку
+routesCards.delete('/cards/:cardId', deleteCard);// удаляет карточку по идентификатору
+routesCards.put('/cards/:cardId/likes', validateCardId, likeCard); // поставить лайк карточке
+routesCards.delete('/cards/:cardId/likes', validateCardId, dislikeCard); // убрать лайк с карточки
 
 module.exports = routesCards; // экспортировали роутер

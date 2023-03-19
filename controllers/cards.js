@@ -8,6 +8,7 @@ const {
 const NotFound = require('../errors/NotFound');
 // eslint-disable-next-line no-unused-vars
 const BadRequest = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 // GET /cards — возвращает все карточки
 const getCard = (req, res, next) => {
@@ -54,7 +55,7 @@ const deleteCard = (req, res, next) => {
               .send({ data: card });
           });
       } else {
-        res.status(STATUS_CODE.BAD_REQUEST)
+        res.status(STATUS_CODE.FORBIDDEN_ERROR)
           .send({ message: MESSAGE.ERROR_CONFLICT_CARD });
       }
     })
