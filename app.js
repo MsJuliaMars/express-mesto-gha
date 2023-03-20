@@ -32,14 +32,13 @@ app.use(auth);
 app.use('/', usersRouter);
 app.use('/', cardsRouter);
 
-app.use(errors()); // обработчик ошибок celebrate
-app.use(handleError);
 // Обработка неправильного пути '*'
 app.use('*', (req, res) => {
   res.status(STATUS_CODE.NOT_FOUND)
     .send({ message: 'Обработка неправильного пути' });
 });
-
+app.use(errors()); // обработчик ошибок celebrate
+app.use(handleError);
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening on port ${PORT}`);

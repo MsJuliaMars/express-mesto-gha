@@ -4,6 +4,9 @@ const {
   STATUS_CODE,
   MESSAGE,
 } = require('../utils/constantsError');
+const NotFound = require('../errors/NotFound');
+const ForbiddenError = require('../errors/ForbiddenError');
+const BadRequestError = require('../errors/BadRequestError');
 
 // GET /cards — возвращает все карточки
 const getCard = (req, res, next) => {
@@ -42,6 +45,7 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
+    .orFail(new NotFound(`Карточка с указанным _id=${req.params.cardId} не найдена.`))
     .then((card) => {
       if (req.user._id === card.owner.toString()) {
         Card.findByIdAndDelete(req.params.cardId)
@@ -50,19 +54,23 @@ const deleteCard = (req, res, next) => {
               .send({ data: card });
           });
       } else {
-        res.status(STATUS_CODE.FORBIDDEN_ERROR)
-          .send({ message: MESSAGE.ERROR_CONFLICT_CARD });
+        throw new ForbiddenError('MESSAGE.ERROR_CONFLICT_CARD');
+        // res.status(STATUS_CODE.FORBIDDEN_ERROR)
+        //   .send({ message: MESSAGE.ERROR_CONFLICT_CARD });
       }
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'TypeError') {
-        res.status(STATUS_CODE.NOT_FOUND)
-          .send({ message: `Карточка с указанным _id=${req.params.cardId} не найдена.` });
-      } else if (err.name === 'CastError') {
-        res.status(STATUS_CODE.BAD_REQUEST)
-          .send({ message: 'Переданы некорректные данные' });
+      // if (err.name === 'ValidationError' || err.name === 'TypeError') {
+      //   res.status(STATUS_CODE.NOT_FOUND)
+      //     .send({ message: `Карточка с указанным _id=${req.params.cardId} не найдена.` });
+      // } else
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные'));
+        // res.status(STATUS_CODE.BAD_REQUEST)
+        //   .send({ message: 'Переданы некорректные данные' });
+      } else {
+        next(err);
       }
-      return next;
     });
 };
 

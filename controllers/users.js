@@ -10,6 +10,7 @@ const {
   MESSAGE,
 } = require('../utils/constantsError');
 const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 // GET /users — возвращает всех пользователей
 const getUsers = (req, res, next) => {
@@ -21,20 +22,16 @@ const getUsers = (req, res, next) => {
 
 // GET /users/:userId - возвращает пользователя по _id
 const getUserID = (req, res, next) => {
-  User.findById(req.params.userId)
+  User.findById(req.params.userId).orFail(new NotFound(`Извините, пользователь _id=${req.params.userId} не найден.`))
     .then((user) => {
-      if (!user) {
-        res.status(STATUS_CODE.NOT_FOUND)
-          .send({ message: `Извините, пользователь _id=${req.params.userId} не найден.` });
-      }
-      res.send({ data: user });
+      res.status(STATUS_CODE.OK).send({ data: user });
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_CODE.BAD_REQUEST)
-          .send({ message: 'Некорректный userID ' });
+        next(new BadRequestError('Некорректный userID '));
       }
-      return next(err);
+      next(err);
     });
 };
 
@@ -105,7 +102,8 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Введены ны некорректные данные'));
-      } next(err);
+      }
+      next(err);
     });
 };
 

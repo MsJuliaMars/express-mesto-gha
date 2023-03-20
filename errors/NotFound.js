@@ -1,7 +1,10 @@
+// const ApplicationError = require('./ApplicationError');
+
 class NotFound extends Error {
   constructor(message) {
     super(message);
-    this.status = 404;
+    this.name = 'NotFound';
+    this.statusCode = 404;
   }
 }
 // 404 — карточка или пользователь не найден. или был запрошен несуществующий роут

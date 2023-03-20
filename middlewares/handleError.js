@@ -1,15 +1,23 @@
-const {
-  MESSAGE,
-} = require('../utils/constantsError');
+const { isCelebrateError } = require('celebrate');
 
 const handleError = (err, req, res, next) => {
-  const serverError = {
-    status: 500,
-    message: 'Ошибка работы сервера',
-  };
-  res.status(serverError.status)
-    .send({ message: serverError.status === 500 ? `${MESSAGE.USER_SERVER_ERROR}: ${err.message}` : err.message });
-
+  const {
+    statusCode = 500,
+    message = 'Неизвестная ошибка сервера _',
+  } = err;
+  if (isCelebrateError(err)) {
+    res.status(statusCode)
+      .json(err);
+  } else {
+    res
+      .status(statusCode)
+      .json({
+        // проверяем статус и выставляем сообщение в зависимости от него
+        message: statusCode === 500
+          ? 'На сервере произошла ошибка'
+          : message,
+      });
+  }
   next();
 };
 
