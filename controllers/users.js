@@ -10,7 +10,8 @@ const {
   MESSAGE,
 } = require('../utils/constantsError');
 const BadRequestError = require('../errors/BadRequestError');
-const ForbiddenError = require('../errors/ForbiddenError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
+const ConflictError = require('../errors/ConflictError');
 
 // GET /users — возвращает всех пользователей
 const getUsers = (req, res, next) => {
@@ -22,11 +23,12 @@ const getUsers = (req, res, next) => {
 
 // GET /users/:userId - возвращает пользователя по _id
 const getUserID = (req, res, next) => {
-  User.findById(req.params.userId).orFail(new NotFound(`Извините, пользователь _id=${req.params.userId} не найден.`))
+  User.findById(req.params.userId)
+    .orFail(new NotFound(`Извините, пользователь _id=${req.params.userId} не найден.`))
     .then((user) => {
-      res.status(STATUS_CODE.OK).send({ data: user });
+      res.status(STATUS_CODE.OK)
+        .send({ data: user });
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Некорректный userID '));
@@ -36,7 +38,7 @@ const getUserID = (req, res, next) => {
 };
 
 // POST /signup - регистрация пользователя и соответсвено его создание
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -59,15 +61,18 @@ const createUser = (req, res) => {
       }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(STATUS_CODE.BAD_REQUEST)
-          .send({ message: MESSAGE.ERROR_CREATE_USER });
+        next(new BadRequestError(MESSAGE.ERROR_CREATE_USER));
+        // res.status(STATUS_CODE.BAD_REQUEST)
+        //   .send({ message: MESSAGE.ERROR_CREATE_USER });
       } else if (err.code === 11000) {
-        res.status(STATUS_CODE.CONFLICT_ERROR)
-          .send({ message: MESSAGE.ERROR_CONFLICT_EMAIL });
-      } else {
-        res.status(STATUS_CODE.SERVER_ERROR)
-          .send({ message: MESSAGE.USER_SERVER_ERROR });
+        next(new ConflictError(MESSAGE.ERROR_CONFLICT_EMAIL));
+        // res.status(STATUS_CODE.CONFLICT_ERROR)
+        // .send({ message: MESSAGE.ERROR_CONFLICT_EMAIL });
       }
+      // } else {
+      //   res.status(STATUS_CODE.SERVER_ERROR)
+      //     .send({ message: MESSAGE.USER_SERVER_ERROR });
+      return next(err);
     });
 };
 
@@ -78,8 +83,9 @@ const getCurrentUser = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer')) {
-    res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
-      .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
+    throw new UnauthorizedError(MESSAGE.ERROR_UNAUTHORIZED);
+    // res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
+    //   .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
   }
   const token = authorization.replace('Bearer ', '');
   let payload;
@@ -94,10 +100,7 @@ const getCurrentUser = (req, res, next) => {
   }
   // eslint-disable-next-line no-underscore-dangle
   User.findById(payload._id)
-    .orFail(() => {
-      res.status(STATUS_CODE.NOT_FOUND)
-        .send({ message: MESSAGE.USER_NOT_FOUND });
-    })
+    .orFail(new NotFound(MESSAGE.USER_NOT_FOUND))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -108,12 +111,13 @@ const getCurrentUser = (req, res, next) => {
 };
 
 // POST /signin контроллер аутентификации
-const login = (req, res) => {
+const login = (req, res, next) => {
   const {
     email,
     password,
   } = req.body;
   return User.findUserByCredentials(email, password)
+    .orFail(new UnauthorizedError('Невалидный пароль / отсуствует токен'))
     .then((user) => {
       // eslint-disable-next-line no-underscore-dangle
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
@@ -127,10 +131,7 @@ const login = (req, res) => {
           token,
         });
     })
-    .catch((err) => {
-      res.status(401)
-        .send({ message: err.message });
-    });
+    .catch(next);
 };
 
 // PATCH /users/me — обновляет профиль
@@ -148,17 +149,13 @@ const updateUser = (req, res, next) => {
   })
     .orFail(() => {
       // eslint-disable-next-line no-new
-      new NotFound();
+      new NotFound(MESSAGE.USER_NOT_FOUND);
     })
     .then((user) => res.status(STATUS_CODE.OK)
       .send({ data: user }))
     .catch((err) => {
-      if (err.message === 'NotValidId') {
-        res.status(STATUS_CODE.NOT_FOUND)
-          .send({ message: MESSAGE.USER_NOT_FOUND });
-      } else if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(STATUS_CODE.BAD_REQUEST)
-          .send({ message: ' Переданы некорректные данные при обновлении профиля. ' });
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        next(new BadRequestError(MESSAGE.ERROR_UPDATE_PROFILE));
       }
       return next(err);
     });
@@ -180,8 +177,7 @@ const updateUserAvatar = (req, res, next) => {
       .send({ data: user }))
     .catch((err) => {
       if (err.name === 'SyntaxError') {
-        res.status(STATUS_CODE.BAD_REQUEST)
-          .send({ message: ' Переданы некорректные данные при обновлении профиля. ' });
+        next(new BadRequestError(MESSAGE.ERROR_UPDATE_AVATAR));
       }
       return next(err);
     });
