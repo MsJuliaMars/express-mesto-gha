@@ -25,4 +25,5 @@ module.exports.MESSAGE = {
   ERROR_CONFLICT_CARD: 'Вы пытветесь удалить карточку другого пользователя',
   ERROR_UNAUTHORIZED: 'Необходима авторизация',
   SUCCESS_AUTH: 'Вы успешно автризировались',
+  FAIL_AUTH: 'Неправильные почта или пароль',
 };

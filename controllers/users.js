@@ -62,16 +62,9 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(MESSAGE.ERROR_CREATE_USER));
-        // res.status(STATUS_CODE.BAD_REQUEST)
-        //   .send({ message: MESSAGE.ERROR_CREATE_USER });
       } else if (err.code === 11000) {
         next(new ConflictError(MESSAGE.ERROR_CONFLICT_EMAIL));
-        // res.status(STATUS_CODE.CONFLICT_ERROR)
-        // .send({ message: MESSAGE.ERROR_CONFLICT_EMAIL });
       }
-      // } else {
-      //   res.status(STATUS_CODE.SERVER_ERROR)
-      //     .send({ message: MESSAGE.USER_SERVER_ERROR });
       return next(err);
     });
 };
@@ -117,7 +110,6 @@ const login = (req, res, next) => {
     password,
   } = req.body;
   return User.findUserByCredentials(email, password)
-    .orFail(new UnauthorizedError('Невалидный пароль / отсуствует токен'))
     .then((user) => {
       // eslint-disable-next-line no-underscore-dangle
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
