@@ -35,8 +35,9 @@ const createCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(MESSAGE.ERROR_CREATE_CARD));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
@@ -47,19 +48,16 @@ const deleteCard = (req, res, next) => {
     .orFail(new NotFound(`Карточка с указанным _id=${req.params.cardId} не найдена.`))
     .then((card) => {
       if (req.user._id === card.owner.toString()) {
-        Card.findByIdAndDelete(req.params.cardId)
+        return Card.findByIdAndDelete(req.params.cardId)
           .then(() => {
             res.status(STATUS_CODE.OK)
               .send({ data: card });
           });
-      } else {
-        throw new ForbiddenError('MESSAGE.ERROR_CONFLICT_CARD');
       }
+      throw new ForbiddenError(MESSAGE.ERROR_CONFLICT_CARD);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'TypeError') {
-        next(new NotFound(`Карточка с указанным _id=${req.params.cardId} не найдена.`));
-      } else if (err.name === 'CastError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('Переданы некорректные данные'));
       } else {
         next(err);
@@ -76,18 +74,18 @@ const likeCard = (req, res, next) => {
   )
     .orFail(() => {
       // eslint-disable-next-line no-new
-      new NotFound(MESSAGE.ERROR_NOT_LIKE);
+      throw new NotFound(MESSAGE.CARD_NOT_FOUND);
     })
     .then((card) => {
       res.status(STATUS_CODE.OK)
         .send({ data: card });
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        next(new NotFound(MESSAGE.ERROR_CREATE_LIKE));
-      } else if (err.name === 'CastError') {
-        next(new BadRequestError(MESSAGE.ERROR_NOT_LIKE));
-      }
+      // if (err.name === 'DocumentNotFoundError') {
+      //   next(new NotFound(MESSAGE.ERROR_CREATE_LIKE));
+      // } else if (err.name === 'CastError') {
+      //   next(new BadRequestError(MESSAGE.ERROR_NOT_LIKE));
+      // }
       next(err);
     });
 };
@@ -101,17 +99,16 @@ const dislikeCard = (req, res, next) => {
   )
     .orFail(() => {
       // eslint-disable-next-line no-new
-      new NotFound(MESSAGE.ERROR_NOT_LIKE);
+      throw new NotFound(MESSAGE.CARD_NOT_FOUND);
     })
     .then((card) => res.status(STATUS_CODE.OK)
       .send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError(MESSAGE.ERROR_NOT_LIKE));
-      } else if (err.name === 'DocumentNotFoundError') {
-        next(new NotFound(MESSAGE.ERROR_CREATE_LIKE));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 

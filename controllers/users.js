@@ -32,8 +32,9 @@ const getUserID = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Некорректный userID '));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -64,8 +65,9 @@ const createUser = (req, res, next) => {
         next(new BadRequestError(MESSAGE.ERROR_CREATE_USER));
       } else if (err.code === 11000) {
         next(new ConflictError(MESSAGE.ERROR_CONFLICT_EMAIL));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
@@ -77,8 +79,6 @@ const getCurrentUser = (req, res, next) => {
 
   if (!authorization || !authorization.startsWith('Bearer')) {
     throw new UnauthorizedError(MESSAGE.ERROR_UNAUTHORIZED);
-    // res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
-    //   .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
   }
   const token = authorization.replace('Bearer ', '');
   let payload;
@@ -95,12 +95,7 @@ const getCurrentUser = (req, res, next) => {
   User.findById(payload._id)
     .orFail(new NotFound(MESSAGE.USER_NOT_FOUND))
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Введены ны некорректные данные'));
-      }
-      next(err);
-    });
+    .catch(next);
 };
 
 // POST /signin контроллер аутентификации
@@ -132,7 +127,7 @@ const updateUser = (req, res, next) => {
     name,
     about,
   } = req.body;
-  User.findOneAndUpdate(req.params.userId, {
+  User.findByIdAndUpdate(req.params.userId, {
     name,
     about,
   }, {
@@ -141,15 +136,16 @@ const updateUser = (req, res, next) => {
   })
     .orFail(() => {
       // eslint-disable-next-line no-new
-      new NotFound(MESSAGE.USER_NOT_FOUND);
+      throw new NotFound(MESSAGE.USER_NOT_FOUND);
     })
     .then((user) => res.status(STATUS_CODE.OK)
       .send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequestError(MESSAGE.ERROR_UPDATE_PROFILE));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 
@@ -157,22 +153,17 @@ const updateUser = (req, res, next) => {
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   // eslint-disable-next-line max-len
-  User.findOneAndUpdate(req.params.userId, { avatar }, {
+  User.findByIdAndUpdate(req.params.userId, { avatar }, {
     new: true,
     runValidators: true,
   })
     .orFail(() => {
       // eslint-disable-next-line no-new
-      new NotFound(`Извините, пользователь _id=${req.params.userId} не найден.`);
+      throw new NotFound(`Извините, пользователь _id=${req.params.userId} не найден.`);
     })
     .then((user) => res.status(STATUS_CODE.OK)
       .send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'SyntaxError') {
-        next(new BadRequestError(MESSAGE.ERROR_UPDATE_AVATAR));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports = {

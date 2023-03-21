@@ -11,9 +11,9 @@ const helmet = require('helmet');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 const routes = require('./routes/index');
-const { STATUS_CODE } = require('./utils/constantsError');
 const handleError = require('./middlewares/handleError');
 const auth = require('./middlewares/auth');
+const NotFound = require('./errors/NotFound');
 
 const
   { PORT = 3000 } = process.env;
@@ -33,9 +33,8 @@ app.use('/', usersRouter);
 app.use('/', cardsRouter);
 
 // Обработка неправильного пути '*'
-app.use('*', (req, res) => {
-  res.status(STATUS_CODE.NOT_FOUND)
-    .send({ message: 'Обработка неправильного пути' });
+app.use('*', (req, res, next) => {
+  next(new NotFound('Обработка неправильного пути'));
 });
 app.use(errors()); // обработчик ошибок celebrate
 app.use(handleError);
