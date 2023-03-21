@@ -70,7 +70,7 @@ const createUser = (req, res, next) => {
 };
 
 // GET /users/me - возвращает информацию о текущем пользователе
-// eslint-disable-next-line consistent-return,no-unused-vars
+// eslint-disable-next-line consistent-return
 const getCurrentUser = (req, res, next) => {
   //  проверка на авторизацию
   const { authorization } = req.headers;
