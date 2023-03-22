@@ -81,12 +81,11 @@ const likeCard = (req, res, next) => {
         .send({ data: card });
     })
     .catch((err) => {
-      // if (err.name === 'DocumentNotFoundError') {
-      //   next(new NotFound(MESSAGE.ERROR_CREATE_LIKE));
-      // } else if (err.name === 'CastError') {
-      //   next(new BadRequestError(MESSAGE.ERROR_NOT_LIKE));
-      // }
-      next(err);
+      if (err.name === 'CastError') {
+        next(new BadRequestError(MESSAGE.ERROR_NOT_LIKE));
+      } else {
+        next(err);
+      }
     });
 };
 
