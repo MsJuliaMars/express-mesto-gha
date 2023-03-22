@@ -10,7 +10,6 @@ const {
   MESSAGE,
 } = require('../utils/constantsError');
 const BadRequestError = require('../errors/BadRequestError');
-const UnauthorizedError = require('../errors/UnauthorizedError');
 const ConflictError = require('../errors/ConflictError');
 
 // GET /users — возвращает всех пользователей
