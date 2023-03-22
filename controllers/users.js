@@ -74,25 +74,7 @@ const createUser = (req, res, next) => {
 // GET /users/me - возвращает информацию о текущем пользователе
 // eslint-disable-next-line consistent-return
 const getCurrentUser = (req, res, next) => {
-  //  проверка на авторизацию
-  const { authorization } = req.headers;
-
-  if (!authorization || !authorization.startsWith('Bearer')) {
-    throw new UnauthorizedError(MESSAGE.ERROR_UNAUTHORIZED);
-  }
-  const token = authorization.replace('Bearer ', '');
-  let payload;
-  try {
-    // eslint-disable-next-line no-unused-vars
-    payload = jwt.verify(token, 'some-secret-key');
-    // res.send(payload);
-  } catch (err) {
-    // отправим ошибку если не получится
-    return res.status(STATUS_CODE.UNAUTHORIZED_ERROR)
-      .send({ message: MESSAGE.ERROR_UNAUTHORIZED });
-  }
-  // eslint-disable-next-line no-underscore-dangle
-  User.findById(payload._id)
+  User.findById(req.user._id)
     .orFail(new NotFound(MESSAGE.USER_NOT_FOUND))
     .then((user) => res.send(user))
     .catch(next);
@@ -127,7 +109,7 @@ const updateUser = (req, res, next) => {
     name,
     about,
   } = req.body;
-  User.findByIdAndUpdate(req.params.userId, {
+  User.findByIdAndUpdate(req.user._id, {
     name,
     about,
   }, {
@@ -138,8 +120,10 @@ const updateUser = (req, res, next) => {
       // eslint-disable-next-line no-new
       throw new NotFound(MESSAGE.USER_NOT_FOUND);
     })
-    .then((user) => res.status(STATUS_CODE.OK)
-      .send({ data: user }))
+    .then((user) => {
+      res.status(STATUS_CODE.OK)
+        .send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequestError(MESSAGE.ERROR_UPDATE_PROFILE));
@@ -153,7 +137,7 @@ const updateUser = (req, res, next) => {
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   // eslint-disable-next-line max-len
-  User.findByIdAndUpdate(req.params.userId, { avatar }, {
+  User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
   })
